@@ -33,7 +33,9 @@ class GmailIMAP():
 
 
     def read_email_inbox(self):
-        messages = self.imap.select("INBOX")[1]
+        '''Reads all emails found in the email inbox'''
+        print(self.imap.list())
+        messages = self.imap.select("[GMAIL]/INBOX")[1]
         numOfMessages = int(messages[0])
         for i in range(numOfMessages, 0, -1):
             # use RFC822 email message format to decode email
@@ -43,25 +45,18 @@ class GmailIMAP():
                 if isinstance(msg, tuple):
                     # format email from bytes
                     email = em.message_from_bytes(msg[1])
-                    self.decode_title(email)
-                    self.decode_metadata(email)
+                    self.pull_metadata(email)
                     print("="*100)
     
-    def decode_title(self, email):
-        '''Takes the Email object and pulls the subject using decode_header method'''
-        title = decode_header(email["Subject"])[0]
-        print(f'Subject: {title[0]}')
-
-    def decode_metadata(self, email):
+    def pull_metadata(self, email):
+        '''Takes the Email object and pulls metadata using decode_header method'''
+        title = decode_header(email["Subject"])[0]        
         receiveTime = decode_header(email["Date"])[0]
-        print(f'Received: {receiveTime[0]}')
         sender = decode_header(email['From'])[0]
+        print(f'Subject: {title[0]}')
+        print(f'Received: {receiveTime[0]}')
         print(f'From: {sender[0]}')
 
-
-    def decode_body(self, email):
-        # body = decode_header(email[])
-        pass
 
 # class Email():
 #     def __init__(self) -> None:
