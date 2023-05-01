@@ -34,8 +34,8 @@ class GmailIMAP():
 
     def read_email_inbox(self):
         '''Reads all emails found in the email inbox'''
-        print(self.imap.list())
-        messages = self.imap.select("[GMAIL]/INBOX")[1]
+        # print(self.imap.list())
+        messages = self.imap.select("Inbox")[1]
         numOfMessages = int(messages[0])
         for i in range(numOfMessages, 0, -1):
             # use RFC822 email message format to decode email
@@ -46,16 +46,28 @@ class GmailIMAP():
                     # format email from bytes
                     email = em.message_from_bytes(msg[1])
                     self.pull_metadata(email)
-                    print("="*100)
+                    self.move_to_printed(msg)
+                    
+
+                    
     
+
     def pull_metadata(self, email):
         '''Takes the Email object and pulls metadata using decode_header method'''
         title = decode_header(email["Subject"])[0]        
         receiveTime = decode_header(email["Date"])[0]
         sender = decode_header(email['From'])[0]
+        
         print(f'Subject: {title[0]}')
         print(f'Received: {receiveTime[0]}')
         print(f'From: {sender[0]}')
+        print("="*100)
+
+
+    def move_to_printed(self, msg):
+        self.imap.copy(msg, "Printed")
+        '''Once the email is seen, place the email in the "Printed" Label folder'''
+
 
 
 # class Email():
@@ -66,36 +78,13 @@ class GmailIMAP():
 
     
        
-
 gm = GmailIMAP()
-
 
 class ImageProcessing():
     def __init__(self) -> None:
         self.read_body()
         self.read_attachment()
         
-
-
-
-
-
-
-
-def obtain_header(msg):
-    # decode the email subject
-    subject, encoding = decode_header(msg["Subject"])[0]
-    if isinstance(subject, bytes):
-        subject = subject.decode(encoding)
- 
-    # decode email sender
-    From, encoding = decode_header(msg.get("From"))[0]
-    if isinstance(From, bytes):
-        From = From.decode(encoding)
- 
-    print("Subject:", subject)
-    print("From:", From)
-    return subject, From
 
 # def triggerEmail():
 # Default Setup of Email
