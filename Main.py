@@ -1,7 +1,9 @@
+import time
 import os
 import imaplib
 import email as em
 from email.header import decode_header
+import re
 
 # from PIL import Image, ImageFilter
 
@@ -24,33 +26,29 @@ class GmailIMAP():
         password = loginFile.readline()
         return(username, password)
     
-
     def set_gmail_connection(self):
         '''Set up IMAP with gmail account'''
         self.imap = imaplib.IMAP4_SSL("imap.gmail.com")
         user, pw = self.get_login()
-        self.imap.login(user, pw)
-
+        self.imap.login(user, pw)      
 
     def read_email_inbox(self):
         '''Reads all emails found in the email inbox'''
-        # print(self.imap.list())
-        messages = self.imap.select("Inbox")[1]
-        numOfMessages = int(messages[0])
-        for i in range(numOfMessages, 0, -1):
-            # use RFC822 email message format to decode email
-            emailInbox = self.imap.fetch(str(i), "(RFC822)")[1]
+        self.imap.select("Inbox", readonly=False)
+        _, items = self.imap.search(None, 'All')
+        email_ids  = items[0].split()
+
+        # Retrieve the UIDs and message numbers of all emails in the inbox
+        for email_id in email_ids:
+            resp, emailInbox = self.imap.fetch(email_id, "(RFC822)")
+            print(resp)
             for msg in emailInbox:
                 # If the email is a tuple
                 if isinstance(msg, tuple):
                     # format email from bytes
                     email = em.message_from_bytes(msg[1])
                     self.pull_metadata(email)
-                    self.move_to_printed(msg)
-                    
-
-                    
-    
+            self.move_folder(email_id)
 
     def pull_metadata(self, email):
         '''Takes the Email object and pulls metadata using decode_header method'''
@@ -61,23 +59,25 @@ class GmailIMAP():
         print(f'Subject: {title[0]}')
         print(f'Received: {receiveTime[0]}')
         print(f'From: {sender[0]}')
-        print("="*100)
+        print("="*40)
+
+    def move_folder(self, email_id):
+        '''Moves the email to the printed folder'''
+        # Get the UID of the email to be moved
+        # Move the email to the printed folder
+        pattern_uid = re.compile(r'\d+ \(UID (?P<uid>\d+)\)')
+        def parse_uid(data):
+            match = pattern_uid.match(data.decode('utf-8'))
+            return match.group('uid')
+        
+        # Loop through the data and retrieve the corresponding emails
+        uid_data = self.imap.fetch(email_id, "(UID)")[1]
+        uid = parse_uid(uid_data[0])
+        self.imap.uid('COPY', uid, 'Printed')
+        self.imap.uid('STORE', uid , '+FLAGS', '(\Deleted)')
+        self.imap.expunge()
 
 
-    def move_to_printed(self, msg):
-        self.imap.copy(msg, "Printed")
-        '''Once the email is seen, place the email in the "Printed" Label folder'''
-
-
-
-# class Email():
-#     def __init__(self) -> None:
-#         self._title = 
-#         self._from = 
-#         self._to = 
-
-    
-       
 gm = GmailIMAP()
 
 class ImageProcessing():
