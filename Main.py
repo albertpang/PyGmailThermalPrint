@@ -65,6 +65,22 @@ class GmailIMAP():
         print(f'Subject: {title[0]}')
         print(f'Received: {receiveTime[0]}')
         print(f'From: {sender[0]}')
+            # Retrieve and print the email body
+
+        if email.is_multipart():
+            for part in email.walk():
+                content_type = part.get_content_type()
+                if content_type == "text/plain":
+                    body = part.get_payload(decode=True)
+                    print("Body:")
+                    print(body.decode())
+                else:
+                    print(content_type)
+        else:
+            body = email.get_payload(decode=True)
+            print("Body:")
+            print(body.decode())
+
         print("="*40)
 
     def move_folder(self, email_id):
