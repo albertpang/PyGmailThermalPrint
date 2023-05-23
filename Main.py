@@ -14,12 +14,19 @@ class GmailIMAP():
     def __init__(self) -> None:
         '''Control the process of login, pulling, parsing from Gmail'''
         self.set_gmail_connection()
-        self.read_email_inbox()
+
+        counter = 1
+        while True:
+            print(f"\nStart Run Count: {counter}")
+            self.read_email_inbox()
+            print(f"End Run Count: {counter}")
+            counter += 1
+            time.sleep(20)
+
 
     def get_login(self) -> tuple:
         '''Read text file containing user and p/w for email account and returns
         tuple (user, password)
-
         Purposely not uploaded using git.ignore'''
         loginFile = open("login.txt", "r")
         username = loginFile.readline().strip()
@@ -41,7 +48,6 @@ class GmailIMAP():
         # Retrieve the UIDs and message numbers of all emails in the inbox
         for email_id in email_ids:
             resp, emailInbox = self.imap.fetch(email_id, "(RFC822)")
-            print(resp)
             for msg in emailInbox:
                 # If the email is a tuple
                 if isinstance(msg, tuple):
@@ -67,15 +73,18 @@ class GmailIMAP():
         # Move the email to the printed folder
         pattern_uid = re.compile(r'\d+ \(UID (?P<uid>\d+)\)')
         def parse_uid(data):
+            if data is None:
+                return None
             match = pattern_uid.match(data.decode('utf-8'))
             return match.group('uid')
         
         # Loop through the data and retrieve the corresponding emails
         uid_data = self.imap.fetch(email_id, "(UID)")[1]
         uid = parse_uid(uid_data[0])
-        self.imap.uid('COPY', uid, 'Printed')
-        self.imap.uid('STORE', uid , '+FLAGS', '(\Deleted)')
-        self.imap.expunge()
+        if uid:
+            self.imap.uid('COPY', uid, 'Printed')
+            self.imap.uid('STORE', uid , '+FLAGS', '(\Deleted)')
+            self.imap.expunge()
 
 
 gm = GmailIMAP()
