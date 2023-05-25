@@ -1,33 +1,21 @@
 import time
-import os
 import imaplib
 import email as em
 from email.header import decode_header
 import re
 
-# from PIL import Image, ImageFilter
-
 # IMAP stands for Internet Message Access Protocol
-# I think it's the basis of the Apple Email App
-
 class GmailIMAP():
     def __init__(self) -> None:
         '''Control the process of login, pulling, parsing from Gmail'''
         self.set_gmail_connection()
-
-        counter = 1
-        while True:
-            print(f"\nStart Run Count: {counter}")
-            self.read_email_inbox()
-            print(f"End Run Count: {counter}")
-            counter += 1
-            time.sleep(20)
-
+        self.read_email_inbox()
 
     def get_login(self) -> tuple:
         '''Read text file containing user and p/w for email account and returns
-        tuple (user, password)
-        Purposely not uploaded using git.ignore'''
+        tuple (user, password) '''
+
+        # Purposely not uploaded using git.ignore
         loginFile = open("login.txt", "r")
         username = loginFile.readline().strip()
         password = loginFile.readline()
@@ -65,29 +53,26 @@ class GmailIMAP():
         print(f'Subject: {title[0]}')
         print(f'Received: {receiveTime[0]}')
         print(f'From: {sender[0]}')
-            # Retrieve and print the email body
 
+        # Retrieve and print the email body
         if email.is_multipart():
             for part in email.walk():
                 content_type = part.get_content_type()
                 if content_type == "text/plain":
-                    body = part.get_payload(decode=True)
-                    print("Body:")
-                    print(body.decode())
-                else:
-                    print(content_type)
+                    body = part.get_payload(decode=True).decode()
+                    print(f"Body:{body}")
         else:
             body = email.get_payload(decode=True)
-            print("Body:")
-            print(body.decode())
-
-        print("="*40)
+            decodedBody = body.decode()
+            print(f"Body: {decodedBody}")
+        print("="*70)
 
     def move_folder(self, email_id):
-        '''Moves the email to the printed folder'''
+        '''Moves the email to the Printed label and removes the Inbox label'''
         # Get the UID of the email to be moved
         # Move the email to the printed folder
         pattern_uid = re.compile(r'\d+ \(UID (?P<uid>\d+)\)')
+
         def parse_uid(data):
             if data is None:
                 return None
@@ -103,31 +88,11 @@ class GmailIMAP():
             self.imap.expunge()
 
 
-gm = GmailIMAP()
-
-class ImageProcessing():
-    def __init__(self) -> None:
-        self.read_body()
-        self.read_attachment()
-        
-
-# def triggerEmail():
-# Default Setup of Email
-def convertGrey(imageLocation):
-    originalImage = "eakins.jpg"
-    img = Image.open(originalImage)
-    blurImage = img.filter(ImageFilter.BLUR)
-    greyImage = blurImage.convert("1")
-    greyImage.show()
-
-
-# def clean(fileName) -> str:
-#     return "FOLDER"
-
-# def download_attachment(emailPart):
-#     fileName = emailPart.get_filename()
-#     if fileName:
-#         folderName = clean(fileName)
-#         if not os.path.isdir(fileName):
-#             filePath = os.path.join(folderName,fileName)
-#             open(filePath, "wb").write(emailPart.get_payload(decode=True))
+if __name__ == "__main__":
+    print("==================")
+    print(" THERMAL PRINTER ")
+    print("==================")
+    
+    while True:
+        gm = GmailIMAP()
+        time.sleep(120)
