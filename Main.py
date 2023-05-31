@@ -76,7 +76,6 @@ class GmailIMAP():
             decodedBody = body.decode()
             self.printer.text(f"Body: {decodedBody}\n")
         self.printer.text("="*18)
-        self.printer.close()
 
     def handle_image(self):
         '''Prepares the downloaded Image for printing, then removes it'''
@@ -117,7 +116,7 @@ if __name__ == "__main__":
     printer.text("==================\n")
     printer.text("  THERMAL PRINTER \n")
     printer.text("==================\n")
-
+    
     while True:
         print(get_time())
         gm = GmailIMAP(printer)
